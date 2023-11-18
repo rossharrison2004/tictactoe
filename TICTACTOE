@@ -1,0 +1,126 @@
+import javafx.application.Application;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
+
+public class App extends Application {
+    private static final int SIZE = 5;
+    private static final int WINNING_COUNT = 5;
+
+    private char currentPlayer = 'X';
+    private Button[][] buttons = new Button[SIZE][SIZE];
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        GridPane gridPane = createGridPane();
+        addButtons(gridPane);
+
+        Scene scene = new Scene(gridPane, 300, 300);
+        primaryStage.setTitle("Tic Tac Toe (5x5)");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private GridPane createGridPane() {
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
+        return gridPane;
+    }
+
+    private void addButtons(GridPane gridPane) {
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                Button button = createButton(row, col);
+                gridPane.add(button, col, row);
+                buttons[row][col] = button;
+            }
+        }
+    }
+
+    private Button createButton(int row, int col) {
+        Button button = new Button();
+        button.setMinSize(60, 60);
+        button.setOnAction(e -> handleButtonClick(row, col));
+        return button;
+    }
+
+    private void handleButtonClick(int row, int col) {
+        if (buttons[row][col].getText().isEmpty()) {
+            buttons[row][col].setText(String.valueOf(currentPlayer));
+
+            if (checkForWin(row, col)) {
+                showWinner();
+                resetGame();
+            } else if (isBoardFull()) {
+                showDraw();
+                resetGame();
+            } else {
+                switchPlayer();
+            }
+        }
+    }
+
+    private boolean checkForWin(int row, int col) {
+        // Check row
+        if (checkLine(row, 0, row, SIZE - 1)) return true;
+        // Check column
+        if (checkLine(0, col, SIZE - 1, col)) return true;
+        // Check diagonal
+        if (row == col && checkLine(0, 0, SIZE - 1, SIZE - 1)) return true;
+        // Check reverse diagonal
+        if (row + col == SIZE - 1 && checkLine(0, SIZE - 1, SIZE - 1, 0)) return true;
+        return false;
+    }
+
+    private boolean checkLine(int startX, int startY, int endX, int endY) {
+        for (int i = 0; i < WINNING_COUNT; i++) {
+            if (buttons[startX][startY].getText().isEmpty() ||
+                    buttons[startX][startY].getText().charAt(0) != currentPlayer) {
+                return false;
+            }
+            startX += (endX - startX) / (WINNING_COUNT - 1);
+            startY += (endY - startY) / (WINNING_COUNT - 1);
+        }
+        return true;
+    }
+
+    private boolean isBoardFull() {
+        for (Button[] row : buttons) {
+            for (Button button : row) {
+                if (button.getText().isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void showWinner() {
+        System.out.println("Player " + currentPlayer + " wins!");
+    }
+
+    private void showDraw() {
+        System.out.println("It's a draw!");
+    }
+
+    private void resetGame() {
+        for (Button[] row : buttons) {
+            for (Button button : row) {
+                button.setText("");
+            }
+        }
+        currentPlayer = 'X';
+    }
+
+    private void switchPlayer() {
+        currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+    }
+}
